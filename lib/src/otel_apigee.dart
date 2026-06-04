@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_apigee_suppression.dart';
 
@@ -52,48 +51,61 @@ Future<T> tracedApigee<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_apigee');
   final span = t.startSpan('apigee $operation', kind: SpanKind.server);
   try {
-    span.setStringAttribute('http.route', '$operation');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('http.route', operation)]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.organization != null) {
-        span.setStringAttribute('apigee.organization', res.organization!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.organization', res.organization!)]));
       }
       if (res.environment != null) {
-        span.setStringAttribute('apigee.environment', res.environment!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.environment', res.environment!)]));
       }
       if (res.apiProxy != null) {
-        span.setStringAttribute('apigee.api_proxy', res.apiProxy!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.api_proxy', res.apiProxy!)]));
       }
       if (res.revision != null) {
-        span.setStringAttribute('apigee.revision', res.revision!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.revision', res.revision!)]));
       }
       if (res.targetEndpoint != null) {
-        span.setStringAttribute('apigee.target.endpoint', res.targetEndpoint!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString('apigee.target.endpoint', res.targetEndpoint!)
+        ]));
       }
       if (res.flowName != null) {
-        span.setStringAttribute('apigee.flow.name', res.flowName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.flow.name', res.flowName!)]));
       }
       if (res.developerApp != null) {
-        span.setStringAttribute('apigee.developer.app', res.developerApp!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.developer.app', res.developerApp!)]));
       }
       if (res.productName != null) {
-        span.setStringAttribute('apigee.product', res.productName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.product', res.productName!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('apigee.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('apigee.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'apigee.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'apigee.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
